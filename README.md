@@ -28,5 +28,4 @@ I use the following notation in the code:
 I use `x` to refer to a term of type `A` when the name `a` is already taken.
 
 ## Problems remaining
-- There are no universes
-- Some glitches like in the definition of the successor function
+There are no universes
