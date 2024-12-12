@@ -1,0 +1,39 @@
+alphaconversion : (B : U) -> (B : U) -> U = (A : U) => (B : U) => A;
+
+bool : U = (A : U) -> (_ : A) -> (_ : A) -> A;
+true : bool = (A : U) => (x : A) => (y : A) => x;
+false : bool = (A : U) => (x : A) => (y : A) => y;
+
+nat : U = (A : U) -> (_ : A) -> (_ : (_ : A) -> A) -> A;
+zero : nat = (A : U) => (a : A) => (f : (_ : A) -> A) => a;
+one  : nat = (A : U) => (a : A) => (f : (_ : A) -> A) => f a;
+two  : nat = (A : U) => (a : A) => (f : (_ : A) -> A) => f (f a);
+S : (_ : nat) -> nat = (n : nat) => (A : U) => (a : A) => (f : (_ : A) -> A) => n A a f;
+
+modusponens : (A : U) -> (B : U) -> (_ : A) -> (_ : (_ : A) -> B) -> B
+= (A : U) => (B : U) => (a : A) => (f : (_ : A) -> B) => f a;
+
+tripleapplication : (F : (_ : U) -> (_ : U) -> U) -> (A : U) -> (B : U) -> U
+= (F : (_ : U) -> (_ : U) -> U) => (A : U) => (B : U) => F A B;
+
+wow : (A : U) -> (B : (x : A) -> U) -> (a : A) -> (f : (u : A) -> B a) -> B a
+= (A : U) => (B : (x : A) -> U) => (a : A) => (f : (u : A) -> B a) => f a;
+
+test : U = (A : U) -> A;
+
+test : (_ : (_ : U) -> U) -> U = (f : (_ : U) -> U) => f U;
+
+test : (_ : (_ : U) -> U) -> U = (f : (_ : U) -> U) => (f) U;
+
+test : ((A : U) => A) U = U;
+
+A : U = (X : U) -> U;
+copyA : U = A;
+A : U = U;
+C : copyA = (X : U) => X;
+
+strangeType : U = (A : U) -> (_ : A) -> A;
+definitionUnfoldingDoesntMessUp : (_ : strangeType) -> U = (n : strangeType) => U;
+
+applyingIdentityDoesntMessUpTheProof : (A : U) -> (a : A) -> A
+= ((x : (A : U) -> (a : A) -> A) => x) ((A : U) => (a : A) => a);
