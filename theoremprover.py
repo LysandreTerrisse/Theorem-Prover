@@ -65,16 +65,19 @@ def parsing():
 def type_checker(expressions):
     global context
     for [a, A, x] in expressions:
-        A_nf = normal_form(A)
-        A_t = get_type(A_nf)
+        if a=="U":
+            exit(f"Name Error: cannot use name 'U'")
+        A_beta = beta_reduce(A)
+        print("A :", stringify(A))
+        print("A_beta :", stringify(A_beta))
+        A_t = get_type(A_beta)
         if A_t !="U":
             exit(f"Type Error: '{stringify(A)}' has type '{stringify(A_t)}' but is supposed to have type 'U'")
-        x_nf = normal_form(x)
-        x_t = get_type(x_nf)
-        if x_t!=A_nf:
-            exit(f"Type Error: '{stringify(x)}' has type '{stringify(x_t)}' but is supposed to have type '{stringify(A_nf)}'")
-        if a!="_":
-            context.append((a, A_nf, x_nf))
+        x_beta = beta_reduce(x)
+        x_t = get_type(x_beta)
+        if not alpha_equiv(x_t, A_beta):
+            exit(f"Type Error: '{stringify(x)}' has type '{stringify(x_t)}' but is supposed to have type '{stringify(A_beta)}'")
+        add(a, A_beta, x_beta)
 
 def stringify(expr):
     match expr:
@@ -82,8 +85,8 @@ def stringify(expr):
             return f"({a} : {stringify(A)}) {arrow} {stringify(B)}"
         case ['application', f, a]:
             return f"({stringify(f)}) ({stringify(a)})"
-        case s:
-            return s
+        case a:
+            return a
 
 def substitute(expr, new, old):
     match expr:
@@ -91,86 +94,98 @@ def substitute(expr, new, old):
             return [arrow, a, substitute(A, new, old), B if a==old else substitute(B, new, old)]
         case ['application', f, a]:
             return ['application', substitute(f, new, old), substitute(a, new, old)]
-        case s:
-            return new if s==old else s
+        case a:
+            return new if a==old else a
 
-#Normal form converts variables into their definitions if they have one (if replace_defs==True), transforms bounded variables into numbers, and transforms ((a : A) => b) x into b[x/a]
-def normal_form(expr, i=0, replace_defs=True):
-    match expr:
+def add(a, A, x=None):
+    global context
+    if a != "_":
+        context.append((a, A) if x is None else (a, A, x))
+
+def remove(a):
+    global context
+    if a != "_":
+        context.pop()
+
+def get(a):
+    global context
+    for i in range(len(context)-1, -1, -1):
+        if context[i][0]==a:
+            return context[i]
+    exit(f"Context Error: unknown variable '{a}'")
+
+def unfold(a):
+    tupl = get(a)
+    return tupl[2] if len(tupl)==3 else a
+
+#Beta reduction unfolds definitions and transforms ((a : A) => b) x into b[x/a]
+def beta_reduce(a):
+    match a:
         case [arrow, a, A, B]:
-            return return [arrow, i, normal_form(A, i+1, replace_defs), normal_form(substitute(B, i, a) if a!="_" else B, i+1, replace_defs)]
+            if a=="U":
+                exit(f"Name Error: cannot use name 'U'")
+            A_beta = beta_reduce(A); add(a, A_beta); B_beta = beta_reduce(B); remove(a)
+            return [arrow, a, A_beta, B_beta]
         case ['application', f, a]:
-            f_nf, a_nf = normal_form(f, i, replace_defs), normal_form(a, i, replace_defs)
-            match f_nf:
+            f_beta, a_beta = beta_reduce(f), beta_reduce(a)
+            match f_beta:
                 case ["=>", x, A, B]:
-                    a_t = get_type(a_nf)
-                    if A!=a_t:
-                        f_t = get_type(f_nf)
-                        exit(f"Type Error: '{stringify(a)}' has type '{stringify(a_t)}' but is applied on '{stringify(f)}' of type '{stringify(f_t)}'")
-                    return normal_form(substitute(B, a_nf, x), i, replace_defs)
+                    a_t = get_type(a_beta)
+                    if not alpha_equiv(A, a_t):
+                        exit(f"Type Error: '{stringify(a)}' has type '{stringify(a_t)}' but is applied on '{stringify(f)}' of type '{stringify(get_type(f_beta))}'")
+                    return beta_reduce(substitute(B, a_beta, x))
                 case _:
-                    return ['application', f_nf, a_nf]
-        case s:
-            if not replace_defs or type(s) is int:
-                assert s=="U" or type(s) is int, s
-                return s
+                    return ['application', f_beta, a_beta]
+        case a:
+            return unfold(a)
 
-            for j in range(len(context)-1, -1, -1):
-                if context[j][0]==s:
-                    return normal_form(context[j][2], i, False) if len(context[j])==3 else s
-            
-            exit(f"Context Error: unknown variable '{s}'")
-        
-def get_type(expr):
-    match expr:
+def alpha_equiv(a1, a2, i=0):
+    match a1, a2:
+        case [arrow1, a1, A1, B1], [arrow2, a2, A2, B2]:
+            return arrow1==arrow2 and alpha_equiv(A1, A2, i) and alpha_equiv(substitute(B1, i, a1), substitute(B2, i, a2), i+1)
+        case [f1, a1], [f2, a2]:
+            return alpha_equiv(f1, f2, i) and alpha_equiv(a1, a2, i)
+        case a1, a2:
+            return a1==a2
+
+def get_type(a):
+    match a:
         case ["->", a, A, B]:
             return get_simple_arrow_type(a, A, B)
         case ["=>", a, A, b]:
             return get_double_arrow_type(a, A, b)
         case ["application", f, a]:
             return get_application_type(f, a)
-        case s:
-            return get_name_type(s)
+        case a:
+            return get_name_type(a)
 
-def get_name_type(s):
-    global context
-    for i in range(len(context)-1, -1, -1):
-        if context[i][0]==s:
-            return context[i][1]
-    exit(f"Context Error: unknown variable '{s}'")
+def get_name_type(a):
+    return get(a)[1]
 
 def get_application_type(f, a):
-    f_type, a_type = get_type(f), get_type(a)
-    match f_type:
+    f_t, a_t = get_type(f), get_type(a)
+    match f_t:
         case ['->', x, A, B]:
-            return substitute(B, a, x)
+            if not alpha_equiv(A, a_t):
+                exit(f"Type Error: '{stringify(a)}' has type '{stringify(a_t)}' but is applied on '{stringify(f)}' of type '{stringify(get_type(f_beta))}'")
+            return beta_reduce(substitute(B, a, x))
         case _:
-            exit(f"Type Error: '{stringify(f)}' has type '{stringify(f_type)}' but is applied on '{stringify(a)}' of type '{stringify(a_type)}'")
+            exit(f"Type Error: '{stringify(f)}' has type '{stringify(f_t)}' but is applied on '{stringify(a)}' of type '{stringify(a_t)}'")
 
 def get_double_arrow_type(a, A, b):
-    global context
-    A_type = get_type(A)
-    if A_type!="U":
-        exit(f"Type Error: '{stringify(A)}' has type '{stringify(A_type)}' but is supposed to have type 'U'")
-    if a!="_":
-        context.append((a, A))
-    b_type = get_type(b)
-    if a!="_":
-        context.pop()
-    return ["->", a, A, b_type]
+    A_t = get_type(A)
+    if A_t!="U":
+        exit(f"Type Error: '{stringify(A)}' has type '{stringify(A_t)}' but is supposed to have type 'U'")
+    add(a, A); b_t = get_type(b); remove(a)
+    return ["->", a, A, b_t]
 
 def get_simple_arrow_type(a, A, B):
-    global context
-    A_type = get_type(A)
-    if A_type!="U":
-        exit(f"Type Error: '{stringify(A)}' has type '{stringify(A_type)}' but is supposed to have type 'U'")
-    if a!="_":
-        context.append((a, A))
-    B_type = get_type(B)
-    if B_type!="U":
-        exit(f"Type Error: '{stringify(B)}' has type '{stringify(B_type)}' but is supposed to have type 'U'")
-    if a!="_":
-        context.pop()
+    A_t = get_type(A)
+    if A_t!="U":
+        exit(f"Type Error: '{stringify(A)}' has type '{stringify(A_t)}' but is supposed to have type 'U'")
+    add(a, A); B_t = get_type(B); remove(a)
+    if B_t!="U":
+        exit(f"Type Error: '{stringify(B)}' has type '{stringify(B_t)}' but is supposed to have type 'U'")
     return "U"
 
 tokens = tokenization("input.in")
