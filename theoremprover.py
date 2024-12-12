@@ -98,7 +98,7 @@ def substitute(expr, new, old):
 def normal_form(expr, i=0, replace_defs=True):
     match expr:
         case [arrow, a, A, B]:
-            return [arrow, i, normal_form(A, i+1, replace_defs), normal_form(substitute(B, i, a), i+1, replace_defs)]
+            return return [arrow, i, normal_form(A, i+1, replace_defs), normal_form(substitute(B, i, a) if a!="_" else "_", i+1, replace_defs)]
         case ['application', f, a]:
             f_nf, a_nf = normal_form(f, i, replace_defs), normal_form(a, i, replace_defs)
             match f_nf:
