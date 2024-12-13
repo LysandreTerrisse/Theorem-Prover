@@ -1,12 +1,15 @@
-import re
+import re, sys
 
 """Tokenization"""
 
 def tokenization(path):
     tokens = []
-    with open(path, "r") as fd:
-        for line in fd:
-            tokens += [s for s in re.split(r"( |:|\(|\)|:|;)", line.strip()) if s not in ["", " "]]
+    try:
+        with open(path, "r") as fd:
+            for line in fd:
+                tokens += [s for s in re.split(r"( |:|\(|\)|:|;)", line.strip()) if s not in ["", " "]]
+    except Exception:
+        exit("File Error: cannot open file")
     return tokens
 
 """Parsing"""
@@ -105,15 +108,11 @@ def get(a):
             return context[i]
     exit(f"Context Error: unknown variable '{a}'")
 
-def unfold(a):
-    tupl = get(a)
-    return tupl[2] if len(tupl)==3 else a
-
 #When called with nothing, it gives every bound variable in "a" a unique name. When called with {b : c}, it returns a[c/b]
 def substitute(a, rho={}):
     global i
     match a:
-        #When I say X[a/b, b/c], it means we replace b by a and we replace c by b at the same time. It means we don't replace c by a. When we have two substitutions b/a and c/a, the leftmost has the priority.
+        #When I say X[a/b, b/c], it means we replace b by a and we replace c by b at the same time. We don't replace c by a. When we have two substitutions b/a and c/a, the leftmost has the priority.
         #((a : A) -> B)[rho] = ((i : A[rho]) -> B[i/a, rho]) with i being free
         case [arrow, a, A, B]:
             if a == "_":
@@ -145,7 +144,8 @@ def beta_reduce(a):
                 case _:
                     return ['application', f_beta, a_beta]
         case a:
-            return unfold(a)
+            tupl = get(a)
+            return tupl[2] if len(tupl)==3 else a
 
 #When checking whether (a1 : A1) -> B1 and (a2 : A2) -> B2 are equivalent, we need to check that A1 and A2 are alpha equivalent, and check whether B1 and B2[a1/a2] are alpha equivalent
 def alpha_equiv(a1, a2):
@@ -159,42 +159,31 @@ def alpha_equiv(a1, a2):
 
 def get_type(a):
     match a:
-        case ["->", a, A, B]:
-            return get_simple_arrow_type(a, A, B)
-        case ["=>", a, A, b]:
-            return get_double_arrow_type(a, A, b)
+        case [arrow, a, A, B]:
+            A_t = get_type(A)
+            if A_t!="U":
+                exit(f"Type Error: '{stringify(A)}' has type '{stringify(A_t)}' but is supposed to have type 'U'")
+            add(a, A); B_t = get_type(B); remove(a)
+            if arrow=="=>":
+                return ["->", a, A, B_t]
+            if B_t!="U":
+                exit(f"Type Error: '{stringify(B)}' has type '{stringify(B_t)}' but is supposed to have type 'U'")
+            return "U"
         case ["application", f, a]:
-            return get_application_type(f, a)
+            f_t, a_t = get_type(f), get_type(a)
+            match f_t:
+                case ['->', x, A, B]:
+                    if not alpha_equiv(A, a_t):
+                        exit(f"Type Error: '{stringify(a)}' has type '{stringify(a_t)}' but is applied on '{stringify(f)}' of type '{stringify(get_type(f_beta))}'")
+                    return beta_reduce(substitute(B, {x : a}))
+                case _:
+                    exit(f"Type Error: '{stringify(f)}' has type '{stringify(f_t)}' but is applied on '{stringify(a)}' of type '{stringify(a_t)}'")
         case a:
             return get(a)[1]
 
-def get_application_type(f, a):
-    f_t, a_t = get_type(f), get_type(a)
-    match f_t:
-        case ['->', x, A, B]:
-            if not alpha_equiv(A, a_t):
-                exit(f"Type Error: '{stringify(a)}' has type '{stringify(a_t)}' but is applied on '{stringify(f)}' of type '{stringify(get_type(f_beta))}'")
-            return beta_reduce(substitute(B, {x : a}))
-        case _:
-            exit(f"Type Error: '{stringify(f)}' has type '{stringify(f_t)}' but is applied on '{stringify(a)}' of type '{stringify(a_t)}'")
-
-def get_double_arrow_type(a, A, b):
-    A_t = get_type(A)
-    if A_t!="U":
-        exit(f"Type Error: '{stringify(A)}' has type '{stringify(A_t)}' but is supposed to have type 'U'")
-    add(a, A); b_t = get_type(b); remove(a)
-    return ["->", a, A, b_t]
-
-def get_simple_arrow_type(a, A, B):
-    A_t = get_type(A)
-    if A_t!="U":
-        exit(f"Type Error: '{stringify(A)}' has type '{stringify(A_t)}' but is supposed to have type 'U'")
-    add(a, A); B_t = get_type(B); remove(a)
-    if B_t!="U":
-        exit(f"Type Error: '{stringify(B)}' has type '{stringify(B_t)}' but is supposed to have type 'U'")
-    return "U"
-
-tokens = tokenization("input.in")
+if len(sys.argv)!=2:
+    exit(f"Parameter Error: expected file name but got {len(sys.argv)-1} arguments")
+tokens = tokenization(sys.argv[1])
 i = 0
 context = [("U", "U")]
 type_checker(parsing())
