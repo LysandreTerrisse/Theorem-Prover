@@ -12,10 +12,10 @@ Or equivalently:
 ```
 <expression> ::= <name> ":" <term> "=" <term> ";"
 <name> ::= regex("^[a-zA-Z_]+$")
-<term> ::= <simplearrow> | <doublearrow> | <name> | <application>
+<term> ::= <simplearrow> | <doublearrow> | <application> | <name> | "(" <term> ")"
 <simplearrow> ::= "(" <name> ":" <term> ")" "->" <term>
 <doublearrow> ::= "(" <name> ":" <term> ")" "=>" <term>
-<application> ::= (<name> | "(" <term> ")") (<name> | "(" <term> ")")
+<application> ::= (<name> | "(" <term> ")") (<name> | "(" <term> ")")+
 ```
 
 ## Notation in the code
