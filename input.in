@@ -1,5 +1,3 @@
-https://math.andrej.com/2012/11/08/how-to-implement-dependent-type-theory-i/
-
 bool : U = (A : U) -> (_ : A) -> (_ : A) -> A;
 true : bool = (A : U) => (x : A) => (y : A) => x;
 false : bool = (A : U) => (x : A) => (y : A) => y;
@@ -22,9 +20,6 @@ testApplyModusPonens : (X : U) -> (Y : U) -> (x : X) -> (g : (_ : X) -> Y) -> Y
 testDoingRandomThings : (A : U) -> (B : (x : A) -> U) -> (a : A) -> (f : (u : A) -> B a) -> B a
 = (A : U) => (B : (x : A) -> U) => (a : A) => (f : (u : A) -> B a) => f a;
 
-False : U = (A : U) -> A;
-testThatShouldFailAlphaConversion : (A : U) -> (_ : A) -> False = (A : U) => (a : A) => (A : U) => a;
-
 testRandomVariableNames : (A : U) -> (B : U) -> (a : A) -> (f : (_ : A) -> B) -> B
 = (X : U) => (Y : U) => (x : X) => (g : (_ : X) -> Y) => g x;
 
@@ -45,3 +40,18 @@ testApplyingIdentityDoesntMessUpTheProof : (A : U) -> (a : A) -> A
 = ((x : (A : U) -> (a : A) -> A) => x) ((A : U) => (a : A) => a);
 
 testApplyingIdentityDoesntMessUpTheProof : ((A : U) => A) U = U;
+
+testAlphaConversion : (A : U) -> (_ : A) -> (B : U) -> A = (A : U) => (a : A) => (A : U) => a;
+
+False : U = (A : U) -> A;
+testThatShouldFailAlphaConversion : (A : U) -> (_ : A) -> False = (A : U) => (a : A) => (A : U) => a;
+
+testThatShouldFailOrAlphaEquivalenceOvershoots : (A : U) -> (B : U) -> (a : A) -> A
+= (A : U) => (A : U) => (a : A) => a;
+
+testThatShouldFailOrAlphaEquivalenceOvershoots : (A : U) -> (A : U) -> (a : A) -> A
+= (A : U) => (B : U) => (a : A) => a;
+
+testThatShouldFailSinceUnderlineShouldntBeSaved : (_ : U) -> (a : _) -> _ = (A : U) => (a : A) => a;
+
+
