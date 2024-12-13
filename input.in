@@ -1,4 +1,4 @@
-alphaconversion : (B : U) -> (B : U) -> U = (A : U) => (B : U) => A;
+https://math.andrej.com/2012/11/08/how-to-implement-dependent-type-theory-i/
 
 bool : U = (A : U) -> (_ : A) -> (_ : A) -> A;
 true : bool = (A : U) => (x : A) => (y : A) => x;
@@ -13,27 +13,35 @@ S : (_ : nat) -> nat = (n : nat) => (A : U) => (a : A) => (f : (_ : A) -> A) => 
 modusponens : (A : U) -> (B : U) -> (_ : A) -> (_ : (_ : A) -> B) -> B
 = (A : U) => (B : U) => (a : A) => (f : (_ : A) -> B) => f a;
 
-tripleapplication : (F : (_ : U) -> (_ : U) -> U) -> (A : U) -> (B : U) -> U
-= (F : (_ : U) -> (_ : U) -> U) => (A : U) => (B : U) => F A B;
+testApplyModusPonens : (X : U) -> (Y : U) -> (x : X) -> (g : (_ : X) -> Y) -> Y
+= modusponens;
 
-wow : (A : U) -> (B : (x : A) -> U) -> (a : A) -> (f : (u : A) -> B a) -> B a
+testApplyModusPonens : (X : U) -> (Y : U) -> (x : X) -> (g : (_ : X) -> Y) -> Y
+= (Z : U) => modusponens Z;
+
+testDoingRandomThings : (A : U) -> (B : (x : A) -> U) -> (a : A) -> (f : (u : A) -> B a) -> B a
 = (A : U) => (B : (x : A) -> U) => (a : A) => (f : (u : A) -> B a) => f a;
 
-test : U = (A : U) -> A;
+False : U = (A : U) -> A;
+testThatShouldFailAlphaConversion : (A : U) -> (_ : A) -> False = (A : U) => (a : A) => (A : U) => a;
 
-test : (_ : (_ : U) -> U) -> U = (f : (_ : U) -> U) => f U;
+testRandomVariableNames : (A : U) -> (B : U) -> (a : A) -> (f : (_ : A) -> B) -> B
+= (X : U) => (Y : U) => (x : X) => (g : (_ : X) -> Y) => g x;
 
-test : (_ : (_ : U) -> U) -> U = (f : (_ : U) -> U) => (f) U;
+testUselessParentheses : (_ : ((_ : (U)) -> (U))) -> (U) = (f : ((_ : U) -> U)) => ((f) (((U))));
 
-test : ((A : U) => A) U = U;
+testTripleApplicationWithoutParenthesis : (F : (_ : U) -> (_ : U) -> U) -> (A : U) -> (B : U) -> U
+= (F : (_ : U) -> (_ : U) -> U) => (A : U) => (B : U) => F A B;
 
 A : U = (X : U) -> U;
 copyA : U = A;
 A : U = U;
-C : copyA = (X : U) => X;
+testCopyARefersToOldA : copyA = (X : U) => X;
 
 strangeType : U = (A : U) -> (_ : A) -> A;
 definitionUnfoldingDoesntMessUp : (_ : strangeType) -> U = (n : strangeType) => U;
 
-applyingIdentityDoesntMessUpTheProof : (A : U) -> (a : A) -> A
+testApplyingIdentityDoesntMessUpTheProof : (A : U) -> (a : A) -> A
 = ((x : (A : U) -> (a : A) -> A) => x) ((A : U) => (a : A) => a);
+
+testApplyingIdentityDoesntMessUpTheProof : ((A : U) => A) U = U;
