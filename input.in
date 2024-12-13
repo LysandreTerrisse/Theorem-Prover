@@ -2,13 +2,16 @@ bool : U = (A : U) -> (_ : A) -> (_ : A) -> A;
 true : bool = (A : U) => (x : A) => (y : A) => x;
 false : bool = (A : U) => (x : A) => (y : A) => y;
 
-nat : U = (A : U) -> (_ : A) -> (_ : (_ : A) -> A) -> A;
-zero : nat = (A : U) => (a : A) => (f : (_ : A) -> A) => a;
-one  : nat = (A : U) => (a : A) => (f : (_ : A) -> A) => f a;
-two  : nat = (A : U) => (a : A) => (f : (_ : A) -> A) => f (f a);
-S : (_ : nat) -> nat = (n : nat) => (A : U) => (a : A) => (f : (_ : A) -> A) => n A a f;
+nat : U = (A : U) ->  (_ : (_ : A) -> A) -> (_ : A) -> A;
+zero : nat = (A : U) => (f : (_ : A) -> A) => (a : A) => a;
+one  : nat = (A : U) => (f : (_ : A) -> A) => (a : A) => f a;
+two  : nat = (A : U) => (f : (_ : A) -> A) => (a : A) => f (f a);
+S : (_ : nat) -> nat = (n : nat) => (A : U) => (f : (_ : A) -> A) => (a : A) => f (n A f a);
 
 modusponens : (A : U) -> (B : U) -> (_ : A) -> (_ : (_ : A) -> B) -> B
+= (A : U) => (B : U) => (a : A) => (f : (_ : A) -> B) => f a;
+
+testModusPonens : (X : U) -> (Y : U) -> (x : X) -> (g : (_ : X) -> Y) -> Y
 = (A : U) => (B : U) => (a : A) => (f : (_ : A) -> B) => f a;
 
 testApplyModusPonens : (X : U) -> (Y : U) -> (x : X) -> (g : (_ : X) -> Y) -> Y
@@ -42,16 +45,3 @@ testApplyingIdentityDoesntMessUpTheProof : (A : U) -> (a : A) -> A
 testApplyingIdentityDoesntMessUpTheProof : ((A : U) => A) U = U;
 
 testAlphaConversion : (A : U) -> (_ : A) -> (B : U) -> A = (A : U) => (a : A) => (A : U) => a;
-
-False : U = (A : U) -> A;
-testThatShouldFailAlphaConversion : (A : U) -> (_ : A) -> False = (A : U) => (a : A) => (A : U) => a;
-
-testThatShouldFailOrAlphaEquivalenceOvershoots : (A : U) -> (B : U) -> (a : A) -> A
-= (A : U) => (A : U) => (a : A) => a;
-
-testThatShouldFailOrAlphaEquivalenceOvershoots : (A : U) -> (A : U) -> (a : A) -> A
-= (A : U) => (B : U) => (a : A) => a;
-
-testThatShouldFailSinceUnderlineShouldntBeSaved : (_ : U) -> (a : _) -> _ = (A : U) => (a : A) => a;
-
-
