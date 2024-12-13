@@ -3,13 +3,14 @@
 ## Backus-Naur Form
 Here is the Backus-Naur form, where `regex(s)` must be interpreted as the regular expression `s`:
 ```
-<expression> ::= <name> ":" <term> "=" <term> ";"
+<file> ::= (<name> ":" <term> "=" <term> ";")*
 <name> ::= regex("^[a-zA-Z_]+$")
 <term> ::= "(" <name> ":" <term> ")" ("->" | "=>") <term> | (<name> | "(" <term> ")")+
 ```
 
 Or equivalently:
 ```
+<file> ::= <expression>*
 <expression> ::= <name> ":" <term> "=" <term> ";"
 <name> ::= regex("^[a-zA-Z_]+$")
 <term> ::= <simplearrow> | <doublearrow> | <application> | <name> | "(" <term> ")"
