@@ -63,13 +63,13 @@ def parsing():
 """Type checking"""
 
 def type_checker(expressions):
-    global context
+    global context, i
+    i = 0
     for [a, A, x] in expressions:
+        A, x = substitute(A), substitute(x)
         if a=="U":
             exit(f"Name Error: cannot use name 'U'")
         A_beta = beta_reduce(A)
-        print("A :", stringify(A))
-        print("A_beta :", stringify(A_beta))
         A_t = get_type(A_beta)
         if A_t !="U":
             exit(f"Type Error: '{stringify(A)}' has type '{stringify(A_t)}' but is supposed to have type 'U'")
@@ -87,15 +87,6 @@ def stringify(expr):
             return f"({stringify(f)}) ({stringify(a)})"
         case a:
             return a
-
-def substitute(expr, new, old):
-    match expr:
-        case [arrow, a, A, B]:
-            return [arrow, a, substitute(A, new, old), B if a==old else substitute(B, new, old)]
-        case ['application', f, a]:
-            return ['application', substitute(f, new, old), substitute(a, new, old)]
-        case a:
-            return new if a==old else a
 
 def add(a, A, x=None):
     global context
@@ -118,7 +109,24 @@ def unfold(a):
     tupl = get(a)
     return tupl[2] if len(tupl)==3 else a
 
-#Beta reduction unfolds definitions and transforms ((a : A) => b) x into b[x/a]
+#When called with nothing, it gives every bound variable in "a" a unique name. When called with {b : c}, it returns a[c/b]
+def substitute(a, rho={}):
+    global i
+    match a:
+        #When I say X[a/b, b/c], it means we replace b by a and we replace c by b at the same time. It means we don't replace c by a. When we have two substitutions b/a and c/a, the leftmost has the priority.
+        #((a : A) -> B)[rho] = ((i : A[rho]) -> B[i/a, rho]) with i being free
+        case [arrow, a, A, B]:
+            if a == "_":
+                return [arrow, a, substitute(A, rho), substitute(B, rho)]
+            rho2 = rho | {a : i}
+            i+=1
+            return [arrow, i-1, substitute(A, rho), substitute(B, rho2)]
+        case ['application', f, a]:
+            return ['application', substitute(f, rho), substitute(a, rho)]
+        case a:
+            return rho[a] if a in rho else a
+
+#Beta reduction unfolds definitions and transforms ((x : A) => b) a into b[a/x]
 def beta_reduce(a):
     match a:
         case [arrow, a, A, B]:
@@ -129,22 +137,23 @@ def beta_reduce(a):
         case ['application', f, a]:
             f_beta, a_beta = beta_reduce(f), beta_reduce(a)
             match f_beta:
-                case ["=>", x, A, B]:
+                case ["=>", x, A, b]:
                     a_t = get_type(a_beta)
                     if not alpha_equiv(A, a_t):
                         exit(f"Type Error: '{stringify(a)}' has type '{stringify(a_t)}' but is applied on '{stringify(f)}' of type '{stringify(get_type(f_beta))}'")
-                    return beta_reduce(substitute(B, a_beta, x))
+                    return beta_reduce(substitute(b, {x : a}))
                 case _:
                     return ['application', f_beta, a_beta]
         case a:
             return unfold(a)
 
-def alpha_equiv(a1, a2, i=0):
+#When checking whether (a1 : A1) -> B1 and (a2 : A2) -> B2 are equivalent, we need to check that A1 and A2 are alpha equivalent, and check whether B1 and B2[a1/a2] are alpha equivalent
+def alpha_equiv(a1, a2):
     match a1, a2:
         case [arrow1, a1, A1, B1], [arrow2, a2, A2, B2]:
-            return arrow1==arrow2 and alpha_equiv(A1, A2, i) and alpha_equiv(substitute(B1, i, a1), substitute(B2, i, a2), i+1)
+            return arrow1==arrow2 and alpha_equiv(A1, A2) and alpha_equiv(B1, substitute(B2, {a2 : a1}))
         case [f1, a1], [f2, a2]:
-            return alpha_equiv(f1, f2, i) and alpha_equiv(a1, a2, i)
+            return alpha_equiv(f1, f2) and alpha_equiv(a1, a2)
         case a1, a2:
             return a1==a2
 
@@ -157,10 +166,7 @@ def get_type(a):
         case ["application", f, a]:
             return get_application_type(f, a)
         case a:
-            return get_name_type(a)
-
-def get_name_type(a):
-    return get(a)[1]
+            return get(a)[1]
 
 def get_application_type(f, a):
     f_t, a_t = get_type(f), get_type(a)
@@ -168,7 +174,7 @@ def get_application_type(f, a):
         case ['->', x, A, B]:
             if not alpha_equiv(A, a_t):
                 exit(f"Type Error: '{stringify(a)}' has type '{stringify(a_t)}' but is applied on '{stringify(f)}' of type '{stringify(get_type(f_beta))}'")
-            return beta_reduce(substitute(B, a, x))
+            return beta_reduce(substitute(B, {x : a}))
         case _:
             exit(f"Type Error: '{stringify(f)}' has type '{stringify(f_t)}' but is applied on '{stringify(a)}' of type '{stringify(a_t)}'")
 
