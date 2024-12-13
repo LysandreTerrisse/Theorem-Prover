@@ -48,9 +48,9 @@ def term():
 
         while tokens[i] not in ["=", ")", ";"]:
             if tokens[i]=="(":
-                match("("); res = ["application", res, term()]; match(")");
+                match("("); res = [res, term()]; match(")");
             else:
-                res = ["application", res, name()]
+                res = [res, name()]
             
             if i==len(tokens):
                 exit("Syntax Error: end of file reached because of missing ';'")
@@ -82,11 +82,11 @@ def type_checker(expressions):
             exit(f"Type Error: '{stringify(x)}' has type '{stringify(x_t)}' but is supposed to have type '{stringify(A_beta)}'")
         add(a, A_beta, x_beta)
 
-def stringify(expr):
-    match expr:
+def stringify(a):
+    match a:
         case [arrow, a, A, B]:
             return f"({a} : {stringify(A)}) {arrow} {stringify(B)}"
-        case ['application', f, a]:
+        case [f, a]:
             return f"({stringify(f)}) ({stringify(a)})"
         case a:
             return a
@@ -108,11 +108,10 @@ def get(a):
             return context[i]
     exit(f"Context Error: unknown variable '{a}'")
 
-#When called with nothing, it gives every bound variable in "a" a unique name. When called with {b : c}, it returns a[c/b]
+#When called with no rho, it gives every bound variable in "a" a unique name. When called with {b : c}, it returns a[c/b]
 def substitute(a, rho={}):
     global i
     match a:
-        #When I say X[a/b, b/c], it means we replace b by a and we replace c by b at the same time. We don't replace c by a. When we have two substitutions b/a and c/a, the leftmost has the priority.
         #((a : A) -> B)[rho] = ((i : A[rho]) -> B[i/a, rho]) with i being free
         case [arrow, a, A, B]:
             if a == "_":
@@ -120,8 +119,8 @@ def substitute(a, rho={}):
             rho2 = rho | {a : i}
             i+=1
             return [arrow, i-1, substitute(A, rho), substitute(B, rho2)]
-        case ['application', f, a]:
-            return ['application', substitute(f, rho), substitute(a, rho)]
+        case [f, a]:
+            return [substitute(f, rho), substitute(a, rho)]
         case a:
             return rho[a] if a in rho else a
 
@@ -133,7 +132,7 @@ def beta_reduce(a):
                 exit(f"Name Error: cannot use name 'U'")
             A_beta = beta_reduce(A); add(a, A_beta); B_beta = beta_reduce(B); remove(a)
             return [arrow, a, A_beta, B_beta]
-        case ['application', f, a]:
+        case [f, a]:
             f_beta, a_beta = beta_reduce(f), beta_reduce(a)
             match f_beta:
                 case ["=>", x, A, b]:
@@ -142,12 +141,12 @@ def beta_reduce(a):
                         exit(f"Type Error: '{stringify(a)}' has type '{stringify(a_t)}' but is applied on '{stringify(f)}' of type '{stringify(get_type(f_beta))}'")
                     return beta_reduce(substitute(b, {x : a}))
                 case _:
-                    return ['application', f_beta, a_beta]
+                    return [f_beta, a_beta]
         case a:
             tupl = get(a)
             return tupl[2] if len(tupl)==3 else a
 
-#When checking whether (a1 : A1) -> B1 and (a2 : A2) -> B2 are equivalent, we need to check that A1 and A2 are alpha equivalent, and check whether B1 and B2[a1/a2] are alpha equivalent
+#(a1 : A1) -> B1 and (a2 : A2) -> B2 are alpha_equivalent if and only if A1 and A2 are alpha equivalent, and B1 and B2[a1/a2] are alpha equivalent
 def alpha_equiv(a1, a2):
     match a1, a2:
         case [arrow1, a1, A1, B1], [arrow2, a2, A2, B2]:
@@ -169,7 +168,7 @@ def get_type(a):
             if B_t!="U":
                 exit(f"Type Error: '{stringify(B)}' has type '{stringify(B_t)}' but is supposed to have type 'U'")
             return "U"
-        case ["application", f, a]:
+        case [f, a]:
             f_t, a_t = get_type(f), get_type(a)
             match f_t:
                 case ['->', x, A, B]:
