@@ -114,6 +114,8 @@ def substitute(a, rho={}):
     match a:
         #((a : A) -> B)[rho] = ((i : A[rho]) -> B[i/a, rho]) with i being free
         case [arrow, a, A, B]:
+            if a=="U":
+                exit(f"Name Error: cannot use name 'U'")
             if a == "_":
                 return [arrow, a, substitute(A, rho), substitute(B, rho)]
             rho2 = rho | {a : i}
@@ -128,8 +130,6 @@ def substitute(a, rho={}):
 def beta_reduce(a):
     match a:
         case [arrow, a, A, B]:
-            if a=="U":
-                exit(f"Name Error: cannot use name 'U'")
             A_beta = beta_reduce(A); add(a, A_beta); B_beta = beta_reduce(B); remove(a)
             return [arrow, a, A_beta, B_beta]
         case [f, a]:
