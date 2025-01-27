@@ -1,6 +1,6 @@
 # Theorem Prover
 
-## Backus-Naur Form
+## Extended Backus-Naur Form
 Here is the Extended Backus-Naur form, where `regex(s)` must be interpreted as the regular expression `s`:
 ```
 <file> ::= (<name> ":" <term> "=" <term> ";")*
