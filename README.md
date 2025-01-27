@@ -1,7 +1,7 @@
 # Theorem Prover
 
 ## Backus-Naur Form
-Here is the Backus-Naur form, where `regex(s)` must be interpreted as the regular expression `s`:
+Here is the Extended Backus-Naur form, where `regex(s)` must be interpreted as the regular expression `s`:
 ```
 <file> ::= (<name> ":" <term> "=" <term> ";")*
 <name> ::= regex("^[a-zA-Z_]+$")
