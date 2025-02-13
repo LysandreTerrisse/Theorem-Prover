@@ -1,12 +1,29 @@
-bool : U = (A : U) -> (_ : A) -> (_ : A) -> A;
-true : bool = (A : U) => (x : A) => (y : A) => x;
-false : bool = (A : U) => (x : A) => (y : A) => y;
+True  : U = (A : U) -> (_ : A) -> A;
+I     : True = (A : U) => (a : A) => a;
+False : U = (A : U) -> A;
+not   : (_ : U) -> U = (A : U) => ((_ : A) -> False);
+and   : (_ : U) -> (_ : U) -> U = (A : U) => (B : U) => ((C : U) -> (_ : (_ : A) -> (_ : B) -> C) -> C);
+or    : (_ : U) -> (_ : U) -> U = (A : U) => (B : U) => ((C : U) -> (_ : (_ : A) -> C) -> (_ : (_ : B) -> C) -> C);
+
+bool   : U = (A : U) -> (_ : A) -> (_ : A) -> A;
+true   : bool = (A : U) => (x : A) => (y : A) => x;
+false  : bool = (A : U) => (x : A) => (y : A) => y;
+negb    : (_ : bool) -> bool = (b : bool) => b bool false true;
+andb    : (_ : bool) -> (_ : bool) -> bool = (a : bool) => (b : bool) => a bool b false;
+orb     : (_ : bool) -> (_ : bool) -> bool = (a : bool) => (b : bool) => a bool true b;
+Is_true : (_ : bool) -> U = (b : bool) => ((A : U) -> (B : U) -> (_ : b U A B) -> A);
+
+true_is_true : Is_true true = (A : U) => (B : U) => (x : true U A B) => x;
+negb_false_is_true : Is_true (negb false) = (A : U) => (B : U) => (x : (negb false) U A B) => x;
+false_is_not_true : not (Is_true false) = (H : Is_true false) => H False True I;
 
 nat : U = (A : U) ->  (_ : (_ : A) -> A) -> (_ : A) -> A;
 zero : nat = (A : U) => (f : (_ : A) -> A) => (a : A) => a;
 one  : nat = (A : U) => (f : (_ : A) -> A) => (a : A) => f a;
 two  : nat = (A : U) => (f : (_ : A) -> A) => (a : A) => f (f a);
 S : (_ : nat) -> nat = (n : nat) => (A : U) => (f : (_ : A) -> A) => (a : A) => f (n A f a);
+plus : (_ : nat) -> (_ : nat) -> nat = (m : nat) => (n : nat) => (A : U) => (f : (_ : A) -> A) => (a : A) => m A f (n A f a);
+mult : (_ : nat) -> (_ : nat) -> nat = (m : nat) => (n : nat) => (A : U) => (f : (_ : A) -> A) => (a : A) => m A (n A f) a;
 
 modusponens : (A : U) -> (B : U) -> (_ : A) -> (_ : (_ : A) -> B) -> B
 = (A : U) => (B : U) => (a : A) => (f : (_ : A) -> B) => f a;
