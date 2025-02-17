@@ -7,7 +7,7 @@ def tokenization(path):
     try:
         with open(path, "r") as fd:
             for line in fd:
-                tokens += [s for s in re.split(r"( |:|\(|\)|:|;)", line.strip()) if s not in ["", " "]]
+                tokens += [s for s in re.split(r"( |\(|\)|:|;|=>|->)", line.strip()) if s not in ["", " "]]
     except Exception:
         exit("File Error: cannot open file")
     return tokens
@@ -93,13 +93,11 @@ def stringify(a):
 
 def add(a, A, x=None):
     global context
-    if a != "_":
-        context.append((a, A) if x is None else (a, A, x))
+    context.append((a, A) if x is None else (a, A, x))
 
 def remove(a):
     global context
-    if a != "_":
-        context.pop()
+    context.pop()
 
 def get(a):
     global context
@@ -116,8 +114,6 @@ def substitute(a, rho={}):
         case [arrow, a, A, B]:
             if a=="U":
                 exit(f"Name Error: cannot use name 'U'")
-            if a == "_":
-                return [arrow, a, substitute(A, rho), substitute(B, rho)]
             rho2 = rho | {a : i}
             i+=1
             return [arrow, i-1, substitute(A, rho), substitute(B, rho2)]
