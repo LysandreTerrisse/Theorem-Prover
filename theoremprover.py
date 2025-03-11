@@ -169,7 +169,7 @@ def get_type(a):
             match f_t:
                 case ['->', x, A, B]:
                     if not alpha_equiv(A, a_t):
-                        exit(f"Type Error: '{stringify(a)}' has type '{stringify(a_t)}' but is applied on '{stringify(f)}' of type '{stringify(get_type(f_beta))}'")
+                        exit(f"Type Error: '{stringify(a)}' has type '{stringify(a_t)}' but is applied on '{stringify(f)}' of type '{stringify(f_t)}'")
                     return beta_reduce(substitute(B, {x : a}))
                 case _:
                     exit(f"Type Error: '{stringify(f)}' has type '{stringify(f_t)}' but is applied on '{stringify(a)}' of type '{stringify(a_t)}'")
