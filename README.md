@@ -31,4 +31,7 @@ I use `x` to refer to a term of type `A` when the name `a` is already taken.
 In the comments in the code, I sometimes use `X[a/b]` to mean "`X` if we substitute `a` for `b`" (or equivalently, if we use `a` instead of `b`). When I write `X[b/a, c/b]`, it means we replace `a` by `b` and we replace `b` by `c` at the same time, but we don't replace `a` by `c`. Furthermore, when we have two substitutions `b/a` and `c/a`, the leftmost one has the priority.
 
 ## Special name
-There is only one special name, which is `U`. It is the type of all types, including `U` itself. This ultimately leads to Girard's paradox, stating that if a type is its own type, then we have a contradiction. To fix this, we would need to have a chain of universes `U0 : U1 : U2 : ...`, but I prefer to keep this language simple and see whether someone will be able to prove a contradiction. Furthermore, `U` is the only name that cannot be overwritten.
+There is only one special name, which is `U`. It is the type of all types, including `U` itself. Furthermore, `U` is the only name that cannot be overwritten.
+
+## Girard's paradox
+As `U` is of type `U`, this leaeds to Girard's paradox, stating that if a type is its own type, then we have a contradiction. To fix this, we would need to have a chain of universes `U0 : U1 : U2 : ...`, but I prefer to keep this language simple. The proof of Girard's paradox can be found in `paradox.in`. This proof was made from [this source](https://www.cs.princeton.edu/courses/archive/fall07/cos595/stdlib/html/Coq.Logic.Hurkens.html).
