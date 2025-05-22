@@ -1,0 +1,17 @@
+False : U = (A : U) -> A;
+V : U = (A : U) -> (_ : (_ : (_ : A) -> U) -> (_ : A) -> U) -> (_ : A) -> U;
+W : U = (_ : V) -> U;
+sb : (_ : V) -> V = (z : V) => (A : U) => (r : (_ : (_ : A) -> U) -> (_ : A) -> U) => (a : A) => r (z A r) a;
+le : (_ : (_ : W) -> U) -> (_ : W) -> U = (i : (_ : W) -> U) => (x : W) => x ( (A : U) => (r : (_ : (_ : A) -> U) -> (_ : A) -> U) => (a : A) => i ( (v : V) => sb v A r a));
+induct : (_ : ( (_ : W) -> U)) -> U = (i : (_ : W) -> U) => (x : W) -> (_ : le i x) -> i x;
+WF : W = (v : V) => induct (v W le);
+I : (_ : W) -> U = (x : W) => (_ : (i : (_ : W) -> U) -> (_ : le i x) -> i ( (v : V) => sb v W le x)) -> False;
+Omega : (i : (_ : W) -> U) -> (_ : induct i) -> i WF =
+  (i : (_ : W) -> U) => (y : induct i) =>
+  y WF ( (x : W) => (HH : le ( (a : W) => i ( (v : V) => sb v W le a)) x) =>
+  y ( (v : V) => sb v W le x) HH);
+paradox : False = Omega ( (u : W) => I u) ( (x : W) => (p : le ( (u : W) => I u) x) =>
+  ( (q : (i : (_ : W) -> U) -> (_ : le i x) -> i ( (v : V) => sb v W le x)) =>
+  q ( (u : W) => I u) p ( (i : (_ : W) -> U) =>
+  q ( (y : W) => i ( (v : V) => sb v W le y))))) ( (i : (_ : W) -> U)
+  => (HH : le i WF) => Omega ( (y : W) => i ( (v : V) => sb v W le y)) HH);
