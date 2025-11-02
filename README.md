@@ -7,7 +7,7 @@ This system is a [Pure Type System](https://en.wikipedia.org/wiki/Pure_type_syst
 `U` is the only name which is already predefined. Furthermore, `U` cannot be overwritten.
 
 ## Extended Backus-Naur Form
-Here is the Extended Backus-Naur form, where `regex(s)` must be interpreted as the regular expression `s`:
+Here is the [Extended Backus-Naur form](https://en.wikipedia.org/wiki/Extended_Backus–Naur_form), where `regex(s)` must be interpreted as the regular expression `s`:
 ```
 <file> ::= (<name> ":" <term> "=" <term> ";")*
 <name> ::= regex("^[a-zA-Z_]+$")
