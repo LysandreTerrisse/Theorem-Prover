@@ -25,6 +25,7 @@ Or equivalently:
 <application> ::= (<name> | "(" <term> ")") (<name> | "(" <term> ")")+
 ```
 Which can be interpreted as follows:
+- The file contains arbitrarily many expressions.
 - The expression `a : A = x;` means that we declare the variable $a$ of type $A$ as $x$.
 - The simple arrow `(a : A) -> B` corresponds to $\prod a : A. B$.
 - The double arrow `(a : A) => b` corresponds to $\lambda a : A. b$.
