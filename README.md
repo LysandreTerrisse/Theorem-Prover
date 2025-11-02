@@ -25,20 +25,12 @@ Or equivalently:
 <application> ::= (<name> | "(" <term> ")") (<name> | "(" <term> ")")+
 ```
 Which can be interpreted as follows:
-- `a : A = x;` means that we declare the variable `a` of type `A` as `x`.
-- `(a : A) -> B` corresponds to $\prod a : A. B$.
-- `(a : A) => b` corresponds to $\lambda a : A. b$.
-- `f a` corresponds to $f ~ a$.
+- The expression `a : A = x;` means that we declare the variable `a` of type `A` as `x`.
+- The simple arrow `(a : A) -> B` corresponds to $\prod a : A. B$.
+- The double arrow `(a : A) => b` corresponds to $\lambda a : A. b$.
+- The application `f a` corresponds to $f ~ a$.
 
 ## Notation in the code
-I use the following notation in the code:
-- For expressions: `a : A = x;`
-- For simple arrows: `(a : A) -> B`
-- For double arrows: `(a : A) => b`
-- For applications: `f a`
-
-I use `x` to refer to a term of type `A` when the name `a` is already taken.
-
 In the comments in the code, I sometimes use `X[a/b]` to mean "`X` if we substitute `a` for `b`" (or equivalently, if we use `a` instead of `b`). When I write `X[b/a, c/b]`, it means we replace `a` by `b` and we replace `b` by `c` at the same time, but we don't replace `a` by `c`. Furthermore, when we have two substitutions `b/a` and `c/a`, the leftmost one has the priority.
 
 ## Girard's paradox
