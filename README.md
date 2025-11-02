@@ -28,7 +28,7 @@ Which can be interpreted as follows:
 - `a : A = x;` means that we declare the variable `a` of type `A` as `x`.
 - `(a : A) -> B` corresponds to $\prod a : A. B$.
 - `(a : A) => b` corresponds to $\lambda a : A. b$.
-- `f a` corresponds to `f ~ a`.
+- `f a` corresponds to $f ~ a$.
 
 ## Notation in the code
 I use the following notation in the code:
